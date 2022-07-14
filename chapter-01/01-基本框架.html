@@ -3,32 +3,26 @@
 <html>
 
 <head>
-    <title>Example 01.01 - Basic skeleton</title>
+    <title>Example 01.01 - 基本框架</title>
     <script type="text/javascript" src="../libs/three.js"></script>
     <style>
         body {
-            /* set margin to 0 and overflow to hidden, to
-             use the complete page */
             margin: 0;
             overflow: hidden;
         }
     </style>
 </head>
+
 <body>
+    <div id="WebGL-output">
+        这里什么也没有，基本框架
+    </div>
+    <script type="text/javascript">
+        function init() {
+        }
+        window.onload = init
 
-<!-- Div which will hold the Output -->
-<div id="WebGL-output">
-</div>
-
-<!-- Javascript code that runs our Three.js examples -->
-<script type="text/javascript">
-
-    // once everything is loaded, we run our Three.js stuff.
-    function init() {
-        // here we'll put the Three.js stuff
-    }
-    window.onload = init
-
-</script>
+    </script>
 </body>
+
 </html>
