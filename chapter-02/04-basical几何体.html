@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Example 02.04 - Geometries</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+    <script type="text/javascript" src="../libs/ParametricGeometries.js"></script>
+    <script type="text/javascript" src="../libs/ConvexGeometry.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="Stats-output">
+    </div>
+    <div id="WebGL-output">
+    </div>
+
+    <script type="text/javascript">
+
+        function init() {
+
+            // 帧率组件
+            var stats = initStats();
+
+            // 创建3要素
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            var renderer = new THREE.WebGLRenderer();
+
+            // 设置渲染器背景颜色，大小，产生阴影
+            renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMapEnabled = true;
+
+            // 设置平面并添加到场景中
+            var planeGeometry = new THREE.PlaneGeometry(60, 40, 1, 1);
+            var planeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.receiveShadow = true;
+            plane.rotation.x = -0.5 * Math.PI;
+            plane.position.x = 0;
+            plane.position.y = 0;
+            plane.position.z = 0;
+            scene.add(plane);
+
+            // 设置相机视角
+            camera.position.x = -50;
+            camera.position.y = 30;
+            camera.position.z = 20;
+            camera.lookAt(new THREE.Vector3(-10, 0, 0));
+
+            // 添加环境光源
+            var ambientLight = new THREE.AmbientLight(0x090909);
+            scene.add(ambientLight);
+
+            // 添加聚光灯光源
+            var spotLight = new THREE.SpotLight(0xffffff);
+            spotLight.position.set(-40, 40, 50);
+            spotLight.castShadow = true;
+            scene.add(spotLight);
+
+            // 在场景中添加几何体
+            addGeometries(scene);
+
+            // 渲染NODE添加到DOM节点
+            document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+            render();
+
+            // 添加几何体
+            function addGeometries(scene) {
+                var geoms = [];
+
+                // 通过长宽高等参数自动创建基本图形
+                geoms.push(new THREE.CylinderGeometry(4, 4, 4)); // 圆柱体
+                geoms.push(new THREE.BoxGeometry(2, 2, 2)); // 立方体
+                geoms.push(new THREE.SphereGeometry(2)); // 球体
+                geoms.push(new THREE.IcosahedronGeometry(4)); // 二十面体
+                geoms.push(new THREE.OctahedronGeometry(3)); // 八面体
+                geoms.push(new THREE.ParametricGeometry(THREE.ParametricGeometries.mobius3d, 20, 10)); // 参数化几何体
+                geoms.push(new THREE.TetrahedronGeometry(3)); // 四面体
+                geoms.push(new THREE.TorusGeometry(3, 1, 10, 10)); // 圆环
+                geoms.push(new THREE.TorusKnotGeometry(3, 0.5, 50, 20)); // 扭结圆环
+
+
+                // 通过顶点创建基本图形
+                var points = [
+                    new THREE.Vector3(2, 2, 2),
+                    new THREE.Vector3(2, 2, -2),
+                    new THREE.Vector3(-2, 2, -2),
+                    new THREE.Vector3(-2, 2, 2),
+                    new THREE.Vector3(2, -2, 2),
+                    new THREE.Vector3(2, -2, -2),
+                    new THREE.Vector3(-2, -2, -2),
+                    new THREE.Vector3(-2, -2, 2)
+                ];
+                geoms.push(new THREE.ConvexGeometry(points)); // 自定义顶点创建的高级几何体
+
+                // 生成随机顶点数组
+                var pts = [];
+                var detail = .1;
+                var radius = 3;
+                for (var angle = 0.0; angle < Math.PI; angle += detail)
+                    pts.push(new THREE.Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * radius));
+
+                // 使用随机顶点数组生成圆环
+                geoms.push(new THREE.LatheGeometry(pts, 12));
+
+
+                // 遍历geoms将几何体添加到场景
+                var j = 0;
+                for (var i = 0; i < geoms.length; i++) {
+                    // 设置材质
+                    var cubeMaterial = new THREE.MeshLambertMaterial({ wireframe: true, color: Math.random() * 0xffffff });
+                    var materials = [
+                        new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff, shading: THREE.FlatShading }),
+                        new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true })
+                    ];
+                    var mesh = THREE.SceneUtils.createMultiMaterialObject(geoms[i], materials);
+
+                    // 设置投影
+                    mesh.traverse(function (e) {
+                        e.castShadow = true
+                    });
+
+                    // 设置位置并加入场景
+                    mesh.position.x = -24 + ((i % 4) * 12);
+                    mesh.position.y = 4;
+                    mesh.position.z = -8 + (j * 12);
+                    if ((i + 1) % 4 == 0) j++;
+                    scene.add(mesh);
+                }
+            }
+
+            // 渲染
+            function render() {
+                stats.update();
+                requestAnimationFrame(render);
+                renderer.render(scene, camera);
+            }
+
+            // 帧率组件初始化
+            function initStats() {
+                var stats = new Stats();
+                stats.setMode(0); // 0: fps, 1: m
+                // 位置
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.left = '0px';
+                stats.domElement.style.top = '0px';
+                document.getElementById("Stats-output").appendChild(stats.domElement);
+                return stats;
+            }
+        }
+
+        window.onload = init;
+
+    </script>
+</body>
+
+</html>

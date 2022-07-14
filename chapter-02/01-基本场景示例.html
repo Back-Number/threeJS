@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Example 02.01 - Basic Scene</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<div id="WebGL-output">
+</div>
+
+<script type="text/javascript">
+
+    function init() {
+
+        //帧率组件
+        var stats = initStats();
+
+        //创建3要素
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        var renderer = new THREE.WebGLRenderer();
+
+        //设置渲染器背景颜色，大小，产生阴影
+        renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMapEnabled = true;
+
+        // 设置平面并添加到场景中
+        var planeGeometry = new THREE.PlaneGeometry(60, 40, 1, 1);
+        var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.receiveShadow = true;
+        plane.rotation.x = -0.5 * Math.PI;
+        plane.position.x = 0;
+        plane.position.y = 0;
+        plane.position.z = 0;
+        scene.add(plane);
+
+        // 设置相机视角
+        camera.position.x = -30;
+        camera.position.y = 40;
+        camera.position.z = 30;
+        camera.lookAt(scene.position);
+
+        // 添加环境光光源
+        var ambientLight = new THREE.AmbientLight(0x0c0c0c);
+        scene.add(ambientLight);
+
+        // 添加聚光灯光源
+        var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(-40, 60, -10);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+        // 渲染NODE添加到DOM节点
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        var controls = new function () {
+            this.rotationSpeed = 0.02;
+            this.numberOfObjects = scene.children.length;
+
+            this.removeCube = function () {
+                // 获取场景对象数组
+                var allChildren = scene.children;
+                // 移除最后一个对象（即上一个最新添加的对象）
+                var lastObject = allChildren[allChildren.length - 1];
+                // 确保移除的是Mesh对象，而不是把光源相机等移除了
+                if (lastObject instanceof THREE.Mesh) {
+                    scene.remove(lastObject);
+                    this.numberOfObjects = scene.children.length;
+                }
+            };
+
+            // 添加颜色，大小，位置随机的方块
+            this.addCube = function () {
+
+                var cubeSize = Math.ceil((Math.random() * 3));
+                var cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize); // 随机尺寸（长宽高）
+                var cubeMaterial = new THREE.MeshLambertMaterial({color: Math.random() * 0xffffff}); // 随机颜色
+                var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+                cube.castShadow = true;
+                cube.name = "cube-" + scene.children.length;
+
+                // 随机位置
+                cube.position.x = -30 + Math.round((Math.random() * planeGeometry.parameters.width));
+                cube.position.y = Math.round((Math.random() * 5));
+                cube.position.z = -20 + Math.round((Math.random() * planeGeometry.parameters.height));
+
+                scene.add(cube);
+
+                // 更新场景对象数量
+                this.numberOfObjects = scene.children.length;
+            };
+
+            this.outputObjects = function () {
+                console.log(scene.children);
+            }
+        };
+
+        // 设置参数控件
+        var gui = new dat.GUI();
+        gui.add(controls, 'rotationSpeed', 0, 0.5);  // 设置动画速度
+        gui.add(controls, 'addCube');  // 增加方块
+        gui.add(controls, 'removeCube');  // 移除方块
+        gui.add(controls, 'outputObjects'); // 打印场景对象
+        gui.add(controls, 'numberOfObjects').listen();
+
+        render();
+
+        function render() {
+            stats.update();
+
+            // 为所有Mesh对象执行动画
+            scene.traverse(function (e) {
+                if (e instanceof THREE.Mesh && e != plane) {
+
+                    e.rotation.x += controls.rotationSpeed;
+                    e.rotation.y += controls.rotationSpeed;
+                    e.rotation.z += controls.rotationSpeed;
+                }
+            });
+
+            // 调用requestAnimationFrame进行渲染
+            requestAnimationFrame(render);
+            renderer.render(scene, camera);
+        }
+
+        //帧率组件初始化
+        function initStats() {
+
+            var stats = new Stats();
+
+            stats.setMode(0); // 0: fps, 1: ms
+
+            // 位置
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+
+            return stats;
+        }
+    }
+    window.onload = init
+
+
+</script>
+</body>
+</html>
