@@ -3,14 +3,13 @@
 <html>
 
 <head>
-    <title>Example 03.04 - Directional Light</title>
+    <title>Example 03.04 - 平行光</title>
     <script type="text/javascript" src="../libs/three.js"></script>
 
     <script type="text/javascript" src="../libs/stats.js"></script>
     <script type="text/javascript" src="../libs/dat.gui.js"></script>
     <style>
         body {
-            /* set margin to 0 and overflow to hidden, to go fullscreen */
             margin: 0;
             overflow: hidden;
         }
@@ -20,89 +19,73 @@
 
 <div id="Stats-output">
 </div>
-<!-- Div which will hold the Output -->
 <div id="WebGL-output">
 </div>
 
-<!-- Javascript code that runs our Three.js examples -->
 <script type="text/javascript">
 
-    // once everything is loaded, we run our Three.js stuff.
     function init() {
 
-        var stats = initStats();
+        // 帧率组件
+        var stats = initStats();  
 
-        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        // 创建三要素
         var scene = new THREE.Scene();
-
-        // create a camera, which defines where we're looking at.
         var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-        // create a render and set the size
         var renderer = new THREE.WebGLRenderer();
 
+        // 渲染器颜色，尺寸，产生阴影
         renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMapEnabled = true;
 
-        // create the ground plane
+        // 平面网格对象
         var planeGeometry = new THREE.PlaneGeometry(600, 200, 20, 20);
         var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
         var plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.receiveShadow = true;
-
-        // rotate and position the plane
         plane.rotation.x = -0.5 * Math.PI;
         plane.position.x = 15;
         plane.position.y = -5;
         plane.position.z = 0;
-
-        // add the plane to the scene
         scene.add(plane);
 
-        // create a cube
+        // 立方体网格对象
         var cubeGeometry = new THREE.BoxGeometry(4, 4, 4);
         var cubeMaterial = new THREE.MeshLambertMaterial({color: 0xff3333});
         var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.castShadow = true;
-
-        // position the cube
         cube.position.x = -4;
         cube.position.y = 3;
         cube.position.z = 0;
-
-        // add the cube to the scene
         scene.add(cube);
 
+        // 球体网格对象
         var sphereGeometry = new THREE.SphereGeometry(4, 20, 20);
         var sphereMaterial = new THREE.MeshLambertMaterial({color: 0x7777ff});
-        var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-
-        // position the sphere
+        var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
         sphere.position.x = 20;
         sphere.position.y = 0;
         sphere.position.z = 2;
         sphere.castShadow = true;
-
-        // add the sphere to the scene
         scene.add(sphere);
 
-        // position and point the camera to the center of the scene
+        // 相机位置
         camera.position.x = -35;
         camera.position.y = 30;
         camera.position.z = 25;
         camera.lookAt(new THREE.Vector3(10, 0, 0));
 
-        // add subtle ambient lighting
+        // 环境光
         var ambiColor = "#1c1c1c";
         var ambientLight = new THREE.AmbientLight(ambiColor);
         scene.add(ambientLight);
 
-
+        // 暂存对象
         var target = new THREE.Object3D();
         target.position = new THREE.Vector3(5, 0, 0);
 
-
+        // 设置平行光
         var pointColor = "#ff5808";
         var directionalLight = new THREE.DirectionalLight(pointColor);
         directionalLight.position.set(-40, 60, -10);
